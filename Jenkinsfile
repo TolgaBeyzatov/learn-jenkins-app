@@ -18,11 +18,11 @@ pipeline {
                         }
                     }
                     steps {
-                    sh '''
-                        echo "Test stage"
-                        test -f build/index.html
-                        npm test
-                    '''
+                        sh '''
+                            echo "Test stage"
+                            test -f build/index.html
+                            npm test
+                        '''
                     }
                 }
                 stage('E2E') {
@@ -33,12 +33,12 @@ pipeline {
                         }
                     }
                     steps {
-                    sh '''
-                        npm install serve
-                        node_modules/.bin/serve -s build & 
-                        sleep 10
-                        npx playwright test --reporter=html
-                    '''
+                        sh '''
+                            npm install serve
+                            node_modules/.bin/serve -s build & 
+                            sleep 10
+                            npx playwright test --reporter=html
+                        '''
                     }
                 }
             }    
