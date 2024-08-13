@@ -7,7 +7,24 @@ pipeline {
         line 1 
         line 2
         */
-
+        stage('Build') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+            sh '''
+                ls -la
+                node --version
+                npm --version
+                npm ci
+                npm run build
+                ls -la 
+            '''
+            }
+        }
         stage('Run Tests') {
             parallel {
                 stage('Unit test') {
@@ -53,9 +70,9 @@ pipeline {
                 }
             }    
         }   
-        /*                  
+                         
                 
-        stage('Build') {
+        stage('Deploy') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -64,16 +81,12 @@ pipeline {
             }
             steps {
             sh '''
-                ls -la
-                node --version
-                npm --version
-                npm ci
-                npm run build
-                ls -la 
+                npm install netlify-cli -g
+                netlify --version
             '''
             }
         }
-        */
+        
  
     }
     
