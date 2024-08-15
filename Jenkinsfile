@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        NETLIFY_SITE_ID = ''
+        NETLIFY_SITE_ID = '2b53ebcb-9158-44c9-a0c8-de2d48215276'
     }
 
     stages {
@@ -49,7 +49,7 @@ pipeline {
                         always {
                             junit 'jest-results/junit.xml'
                         }
-    }                
+                    }                
                 }
                 stage('E2E') {
                     agent {
