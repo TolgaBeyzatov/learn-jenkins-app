@@ -14,8 +14,12 @@ pipeline {
         line 2
         */
         stage('Docker') {
-            sh 'docker build -t playwright-image .' 
+            steps {
+                 sh 'docker build -t playwright-image .' 
+            }
+           
         }
+
         stage('Build') {
             agent {
                 docker {
