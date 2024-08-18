@@ -8,18 +8,6 @@ pipeline {
     }
 
     stages {
-        // This is a comment
-        /*
-        line 1 
-        line 2
-        */
-        stage('Docker') {
-            steps {
-                 sh 'docker build -t playwright-image .' 
-            }
-           
-        }
-
         stage('Build') {
             agent {
                 docker {
@@ -114,7 +102,7 @@ pipeline {
             }
 
             environment {
-               CI_ENVIRONMENT_URL = "TO_BE_DONE"
+               CI_ENVIRONMENT_URL = "TO_BE_SPECIFIED"
             }
             
             steps {
