@@ -5,6 +5,7 @@ pipeline {
         // NETLIFY_SITE_ID = '2b53ebcb-9158-44c9-a0c8-de2d48215276'
         // NETLIFY_AUTH_TOKEN = credentials('netlify_tok')
         REACT_APP_VERSION = "1.2.$BUILD_ID"
+        AWS_DEFAULT_REGION = 'us-east-1'
     }
 
     stages {
@@ -14,12 +15,12 @@ pipeline {
                 docker {
                     image 'amazon/aws-cli'
                     reuseNode true
-                    args "--entrypoint=''"
+                    args "--entrypoint=''" 
                 }
             }
-            environment {
-                // AWS_S3_BUCKET = 'ci-cd-bucket-20240818'
-            }
+            // environment {
+            //     // AWS_S3_BUCKET = 'ci-cd-bucket-20240818'
+            // }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
