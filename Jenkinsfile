@@ -13,36 +13,10 @@ pipeline {
 
     stages {
 
-        stage('Deploy to AWS') {
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    reuseNode true
-                    args "-u root --entrypoint=''" 
-                }
-            }
-            // environment {
-            //     // AWS_S3_BUCKET = 'ci-cd-bucket-20240818'
-            // }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh '''
-                        aws --version
-                        yum install jq -y
-                        LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json | jq '.taskDefinition.revision')
-                        echo $LATEST_TD_REVISION
-                        aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE --task-definition $AWS_ECS_TASK:$LATEST_TD_REVISION
-                        
-                    '''
-                    // aws ecs wait services-stable --cluster JenkinsApp-Cluster-Prod --services JenkinsApp-Service-Prod
-                }              
-            }
-        }
-        
         stage('Build') {
             agent {
                 docker {
-                    image 'playwright-image'
+                    image 'node:18-alpine'
                     reuseNode true
                 }
             }
@@ -56,6 +30,52 @@ pipeline {
             '''
             }
         }
+
+          stage('Build Docker image') {
+            agent {
+                docker {
+                    image 'my-aws-cli'
+                    reuseNode true
+                    args "-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=''" 
+                }
+            }
+
+            steps {
+                 sh'''                
+                    
+                    docker build -t myjenkinsapp . 
+                 '''
+                 
+            }           
+        }
+
+        stage('Deploy to AWS') {
+            agent {
+                docker {
+                    image 'my-aws-cli'
+                    reuseNode true
+                    args "-u root --entrypoint=''" 
+                }
+            }
+            // environment {
+            //     // AWS_S3_BUCKET = 'ci-cd-bucket-20240818'
+            // }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                    sh '''
+                        aws --version
+                       
+                        LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json | jq '.taskDefinition.revision')
+                        echo $LATEST_TD_REVISION
+                        aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE --task-definition $AWS_ECS_TASK:$LATEST_TD_REVISION
+                        
+                    '''
+                    // aws ecs wait services-stable --cluster JenkinsApp-Cluster-Prod --services JenkinsApp-Service-Prod
+                }              
+            }
+        }
+        
+        
         
         // stage('Run Tests') {
         //     parallel {
