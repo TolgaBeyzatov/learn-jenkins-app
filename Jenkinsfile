@@ -5,7 +5,9 @@ pipeline {
         // NETLIFY_SITE_ID = '2b53ebcb-9158-44c9-a0c8-de2d48215276'
         // NETLIFY_AUTH_TOKEN = credentials('netlify_tok')
         REACT_APP_VERSION = "1.2.$BUILD_ID"
+        APP_NAME = 'myjenkinsapp'
         AWS_DEFAULT_REGION = 'us-east-1'
+        AWS_DOCKER_REGISTRY = '730335433765.dkr.ecr.us-east-1.amazonaws.com'
         AWS_ECS_CLUSTER = 'JenkinsApp-Cluster-Prod'
         AWS_ECS_SERVICE = 'JenkinsApp-Service-Prod'
         AWS_ECS_TASK = 'JenkinsApp-Cluster-TaskDefinition-Prod'
@@ -41,9 +43,10 @@ pipeline {
             }
 
             steps {
-                 sh'''                
-                    
-                    docker build -t myjenkinsapp . 
+                 sh'''                          
+                    docker build -t $AWS_DOCKER_REGISTRY/$APP_NAME:$REACT_APP_VERSION .
+                    aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
+                    docker push $AWS_DOCKER_REGISTRY/$APP_NAME:$REACT_APP_VERSION
                  '''
                  
             }           
@@ -63,8 +66,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
-                        aws --version
-                       
+                        aws --version  
                         LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json | jq '.taskDefinition.revision')
                         echo $LATEST_TD_REVISION
                         aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE --task-definition $AWS_ECS_TASK:$LATEST_TD_REVISION
